@@ -9,7 +9,9 @@ from langchain.llms import OpenAI
 
 
 # Streamlit 페이지 설정
-st.set_page_config(page_title="AI Chatbot Tuning Studio", layout="wide")
+st.set_page_config(page_title="AI Chatbot Tuning Studio"
+                    ,page_icon=":mage:"
+                   ,layout="wide")
 
 
 # 세션 상태 초기화
@@ -45,7 +47,7 @@ initialize_session_state()
 
 #################################################################
 # 사이드바 설정
-st.sidebar.title("Settings")
+st.sidebar.title("📓Your Recipe")
 st.sidebar.subheader("LLM Selection")
 # sidebar : 모델 선택
 llm_model = st.sidebar.selectbox("Choose your LLM", ('gpt-3.5-turbo', 'gpt-4', 'llama2', 'gemini'), index=0)
@@ -66,9 +68,10 @@ top_p = st.sidebar.slider("Top P", 0.0, 1.0, st.session_state.top_p)
 # chunking size, context window 등
 
 # sidebar : RAG에 쓰일 파일 데이터 업로드
-st.sidebar.subheader("Document Upload")
-uploaded_file = st.sidebar.file_uploader("Upload a document for reference", type=['txt', 'pdf', 'docx'])
-# todo : vector db 생성, 일단 생성된 vector db는 local 저장
+rag_on = st.toggle('Your data')
+if rag_on:
+    uploaded_file = st.sidebar.file_uploader("Upload a document for reference", type=['txt', 'pdf', 'docx'])
+    # todo : vector db 생성, 일단 생성된 vector db는 local 저장
 
 # sidebar :
 if st.sidebar.button("Save Settings"):
@@ -79,22 +82,36 @@ if st.sidebar.button("Save Settings"):
     st.session_state.max_tokens = max_tokens
     st.session_state.top_p = top_p
 
-if st.sidebar.button("Download Settings"):
-    dict_setting = [{'model': llm_model
-                    ,'instruction': instructions
-                    ,'temperature': temperature
-                    ,'max_tokens': max_tokens
-                    ,'top_p': top_p}]
-    df_setting = pd.DataFrame(dict_setting)
-    yyyymmdd = datetime.today().strftime("%Y%m%d")
-    df_setting.to_csv(f'AI_Chat_Settings_{yyyymmdd}.csv', index=False)
+# sidebar : download your custom setting on your local.
+@st.cache_data
+def convert_df(df):
+    # IMPORTANT: Cache the conversion to prevent computation on every rerun
+    return df.to_csv().encode("utf-8")
+
+dict_setting = [{'model': llm_model
+                ,'instruction': instructions
+                ,'temperature': temperature
+                ,'max_tokens': max_tokens
+                ,'top_p': top_p}]
+df_setting = pd.DataFrame(dict_setting)
+csvfile = convert_df(df_setting)
+yyyymmdd = datetime.today().strftime("%Y%m%d")
+# csv_file = df_setting.to_csv(f'AI_Chat_Settings_{yyyymmdd}.csv', index=False)
+
+st.sidebar.download_button(
+   "Download your custom",
+   csvfile,
+   f'AI_Chat_Settings_{yyyymmdd}.csv',
+   "text/csv",
+   key='download-csv'
+)
 
 
 
 #################################################################
 # Main 화면 설정
-st.title("AI Chatbot Tester")
-st.subheader("Chat with the AI")
+st.title(":mage: AI Chatbot Tuning Studio")
+st.subheader("Chat with your Customized AI")
 
 # chat version 1
 # user_input = st.text_input("Your message to the AI:")
@@ -118,7 +135,7 @@ st.subheader("Chat with the AI")
 #         st.write(f"AI: {response_message}")
 
 if api_key == '':
-    st.error('please provide your API key')
+    st.error('Please enter your API key')
 
 else:
     openai.api_key = api_key
