@@ -1,11 +1,10 @@
 import streamlit as st
-# from openai import OpenAI
 import openai
 import pandas as pd
 from datetime import datetime
 import base64
 from langchain.llms import OpenAI
-# from openai import OpenAI
+from openai import OpenAI
 
 
 # Streamlit 페이지 설정
@@ -22,12 +21,12 @@ def initialize_session_state():
         st.session_state.llm_model = 'gpt-4'
     if 'instructions' not in st.session_state:
         st.session_state.instructions = '''
-        당신은 1942년에 살고 있는 안네 프랭크 입니다.
-        주어진 문서를 참고하여 답변을 주세요.
-        안네 프랭크가 답변하는 것처럼 대답해주세요.
-        반말로 답변해주세요.
-        그리고 답변은 구어체로 답변하는 것이니 너무 긴 설명을 하지말고 간단하게 답변해주세요.
-        그리고 예/아니오로 답변할 수 있는 것들은 예/아니오로만 대답해주세요.
+    당신은 1942년에 살고 있는 안네 프랭크 입니다.
+    주어진 문서를 참고하여 답변을 주세요.
+    안네 프랭크가 답변하는 것처럼 대답해주세요.
+    반말로 답변해주세요.
+    그리고 답변은 구어체로 답변하는 것이니 너무 긴 설명을 하지말고 간단하게 답변해주세요.
+    그리고 예/아니오로 답변할 수 있는 것들은 예/아니오로만 대답해주세요.
         '''
     if 'chat_history' not in st.session_state:
         st.session_state.chat_history = []
@@ -50,7 +49,7 @@ initialize_session_state()
 st.sidebar.title("📓Your Recipe")
 st.sidebar.subheader("LLM Selection")
 # sidebar : 모델 선택
-llm_model = st.sidebar.selectbox("Choose your LLM", ('gpt-3.5-turbo', 'gpt-4', 'llama2', 'gemini'), index=0)
+llm_model = st.sidebar.selectbox("Choose your LLM", ('gpt-3.5-turbo', 'gpt-4o', 'llama2', 'gemini'), index=0)
 if 'gpt' not in llm_model:
     st.sidebar.warning('gpt 외 모델은 현재 업데이트 중입니다. gpt 모델만 선택하세요.')
 # sidebar : API Key
@@ -68,7 +67,7 @@ top_p = st.sidebar.slider("Top P", 0.0, 1.0, st.session_state.top_p)
 # chunking size, context window 등
 
 # sidebar : RAG에 쓰일 파일 데이터 업로드
-rag_on = st.toggle('Your data')
+rag_on = st.sidebar.toggle('Your data')
 if rag_on:
     uploaded_file = st.sidebar.file_uploader("Upload a document for reference", type=['txt', 'pdf', 'docx'])
     # todo : vector db 생성, 일단 생성된 vector db는 local 저장
@@ -138,7 +137,9 @@ if api_key == '':
     st.error('Please enter your API key')
 
 else:
-    openai.api_key = api_key
+    # openai initialization
+    # openai.api_key = api_key
+    client = OpenAI(api_key = api_key)
     # chat version 2
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
@@ -154,8 +155,8 @@ else:
             full_response = ""
             # Simulate stream of response with milliseconds delay
 
-            # sidebar의 설정값(model, instruction, temperature, top_p 등) 전달
-            for response in openai.Completion.create(
+            # sidebar의 설정값(model, instruction, temperature, top_p 등) 
+            for response in client.chat.completions.create(
             # for response in openai.ChatCompletion.create(
                     model=st.session_state["llm_model"],
                     messages=[
@@ -167,9 +168,16 @@ else:
                     stream=True,
             ):
                 # get content in response
-                full_response += response.choices[0].delta.get("content", "")
+                # full_response += response.choices[0].delta.get("content", "")
+                # full_response += response.choices[0].delta.content
+                for choice in response.choices:
+                    content = choice.delta.content
+                    if content:
+                        full_response += content
+                        message_placeholder.markdown(full_response + "▌")
+
                 # Add a blinking cursor to simulate typing
-                message_placeholder.markdown(full_response + "▌")
+                # message_placeholder.markdown(full_response + "▌")
 
                 # todo: 질문과 답변, 토큰수를 추출해서 History로 저장가능할듯
                 # https://platform.openai.com/docs/api-reference/chat/create
