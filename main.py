@@ -155,7 +155,8 @@ else:
             # Simulate stream of response with milliseconds delay
 
             # sidebar의 설정값(model, instruction, temperature, top_p 등) 전달
-            for response in openai.ChatCompletion.create(
+            for response in openai.Completion.create(
+            # for response in openai.ChatCompletion.create(
                     model=st.session_state["llm_model"],
                     messages=[
                         {"role": m["role"], "content": m["content"]} for m in st.session_state.messages
