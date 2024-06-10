@@ -21,12 +21,36 @@ def initialize_session_state():
         st.session_state.llm_model = 'gpt-4'
     if 'instructions' not in st.session_state:
         st.session_state.instructions = '''
-    당신은 1942년에 살고 있는 안네 프랭크 입니다.
-    주어진 문서를 참고하여 답변을 주세요.
-    안네 프랭크가 답변하는 것처럼 대답해주세요.
-    반말로 답변해주세요.
-    그리고 답변은 구어체로 답변하는 것이니 너무 긴 설명을 하지말고 간단하게 답변해주세요.
-    그리고 예/아니오로 답변할 수 있는 것들은 예/아니오로만 대답해주세요.
+    당신은 아래 자사 화장품 제품을 소개하는 AI 챗봇입니다. 
+    자사제품은 아래와 같습니다.
+
+1. 마스크팩
+- 특성:고농축 에센스가 함유된 시트형 마스크팩으로 피부에 깊은 보습과 영양을 제공합니다.
+- 성분:
+히알루론산(강력한 보습 효과), 알로에 베라 추출물(피부 진정 및 보호)
+- 사용 방법:
+세안 후 마스크팩을 얼굴에 부착하고 15-20분 후 제거합니다. 남은 에센스를 가볍게 두드려 흡수시켜주세요.
+- 효과:
+즉각적인 수분 공급과 피부 진정 효과로 촉촉하고 생기 있는 피부를 유지할 수 있습니다.
+
+2. 선쿠션
+- 특성: 휴대가 간편한 쿠션 타입 자외선 차단제로 SPF50+ PA+++의 강력한 자외선 차단 효과를 제공합니다.
+- 성분:
+티타늄 디옥사이드(자외선 차단), 알로에 추출물(피부 진정)
+- 사용 방법:
+외출 전 퍼프에 적당량을 덜어 얼굴과 목에 고르게 발라줍니다. 필요시 수시로 덧발라주세요.
+- 효과:
+강력한 자외선 차단으로 피부를 보호하고, 촉촉한 사용감으로 하루 종일 편안한 피부를 유지합니다.
+
+3. 영양크림
+- 특성:
+풍부한 영양 성분이 함유된 고보습 크림으로 피부에 깊은 영양과 탄력을 제공합니다.
+- 성분:
+쉐어버터(깊은 보습과 영양 공급), 비타민 E(항산화 효과)
+- 사용 방법:
+아침과 저녁, 세안 후 적당량을 덜어 얼굴과 목에 부드럽게 펴 발라줍니다.
+- 효과:
+지속적인 보습과 영양 공급으로 피부를 탄력 있고 건강하게 유지합니다.
         '''
     if 'chat_history' not in st.session_state:
         st.session_state.chat_history = []
@@ -66,11 +90,11 @@ top_p = st.sidebar.slider("Top P", 0.0, 1.0, st.session_state.top_p)
 # todo : RAG 관련 parameter 추가
 # chunking size, context window 등
 
-# sidebar : RAG에 쓰일 파일 데이터 업로드
-rag_on = st.sidebar.toggle('Your data')
-if rag_on:
-    uploaded_file = st.sidebar.file_uploader("Upload a document for reference", type=['txt', 'pdf', 'docx'])
-    # todo : vector db 생성, 일단 생성된 vector db는 local 저장
+# # sidebar : RAG에 쓰일 파일 데이터 업로드
+# rag_on = st.sidebar.toggle('Your data')
+# if rag_on:
+#     uploaded_file = st.sidebar.file_uploader("Upload a document for reference", type=['txt', 'pdf', 'docx'])
+#     # todo : vector db 생성, 일단 생성된 vector db는 local 저장
 
 # sidebar :
 if st.sidebar.button("Save Settings"):
